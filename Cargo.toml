@@ -1,0 +1,34 @@
+[package]
+name = "steeve-sync"
+description = "Synchronize your Deep Rock Galactic saves between the Xbox and Steam editions."
+version = "0.1.0"
+authors = ["Jay Oster <jay@kodewerx.org>"]
+repository = "https://github.com/parasyte/steeve-sync"
+readme = "README.md"
+license = "MIT"
+keywords = ["drg", "Xbox", "steam", "save", "sync"]
+categories = ["command-line-utilities"]
+edition = "2021"
+
+[dependencies]
+directories = "4.0"
+hotwatch = "0.4"
+image = { version = "0.24", default-features = false, features = ["ico"] }
+log = "0.4"
+msgbox = "0.7"
+parking_lot = "0.12"
+simplelog = "0.12"
+steamlocate = "1"
+tao = { version = "0.14", features = ["tray"] }
+thiserror = "1.0"
+time = "0.3"
+walkdir = "2.3"
+winapi = { version = "0.3", features = ["uxtheme"] }
+
+[target.'cfg(windows)'.build-dependencies]
+embed-resource = "1.7"
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
