@@ -56,11 +56,11 @@ fn init_logger() -> Result<(Logger, Logger), AppError> {
     use simplelog::*;
     use time::UtcOffset;
 
-    let info_logger = Default::default();
-    let info_memlogger = MemLogger::new(100, &info_logger);
+    let info_logger = Logger::default();
+    let info_memlogger = MemLogger::new(100, info_logger.clone());
 
-    let debug_logger = Default::default();
-    let debug_memlogger = MemLogger::new(1000, &debug_logger);
+    let debug_logger = Logger::default();
+    let debug_memlogger = MemLogger::new(1000, debug_logger.clone());
 
     let config = ConfigBuilder::new()
         .add_filter_allow_str("steeve_sync")

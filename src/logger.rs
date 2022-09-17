@@ -35,11 +35,11 @@ impl Deref for Logger {
 
 impl MemLogger {
     /// Create a new in-memory logger with the given `max_lines` cap.
-    pub fn new(max_lines: usize, logger: &Logger) -> Self {
+    pub fn new(max_lines: usize, logger: Logger) -> Self {
         Self {
             max_lines,
             buffer: Vec::new(),
-            logger: logger.clone(),
+            logger,
         }
     }
 }
@@ -49,7 +49,7 @@ impl Write for MemLogger {
         self.buffer.write_all(buf)?;
 
         // Flush when a new-line is written
-        if self.buffer.iter().any(|b| char::from(*b) == '\n') {
+        if buf.iter().any(|b| char::from(*b) == '\n') {
             self.flush()?;
         }
 
@@ -60,18 +60,21 @@ impl Write for MemLogger {
         // Convert bytes into a string with lossy UTF-8 encoding
         let buffer = String::from_utf8_lossy(&self.buffer);
 
-        let mut guard = self.logger.lock();
+        // This scope is for releasing the lock ASAP
+        {
+            let mut guard = self.logger.lock();
 
-        // Write all lines
-        for line in buffer.lines() {
-            if line.is_empty() {
-                continue;
-            }
+            // Write all lines
+            for line in buffer.lines() {
+                if line.is_empty() {
+                    continue;
+                }
 
-            if guard.len() >= self.max_lines {
-                guard.pop_front();
+                if guard.len() >= self.max_lines {
+                    guard.pop_front();
+                }
+                guard.push_back(line.to_string());
             }
-            guard.push_back(line.to_string());
         }
 
         // Consume the buffer
