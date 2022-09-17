@@ -52,7 +52,7 @@ impl Error {
 #[derive(Debug)]
 pub struct Steeve {
     steam_save: SteamSave,
-    Xbox_save: XboxSave,
+    xbox_save: XboxSave,
     hotwatch: Hotwatch,
 }
 
@@ -82,13 +82,13 @@ impl Steeve {
         backup_dir.push("Backups");
 
         let steam_save = SteamSave::new(max_backups, backup_dir.clone())?;
-        let Xbox_save = XboxSave::new(max_backups, backup_dir)?;
+        let xbox_save = XboxSave::new(max_backups, backup_dir)?;
         let hotwatch =
             Hotwatch::new().map_err(|err| Error::from_hotwatch(err, "Creating watcher"))?;
 
         let mut steeve = Self {
             steam_save,
-            Xbox_save,
+            xbox_save,
             hotwatch,
         };
 
@@ -96,21 +96,21 @@ impl Steeve {
 
         // Start watching for changes
         let (tx, rx) = sync_channel(1);
-        let Xbox_save = steeve.Xbox_save.clone();
+        let xbox_save = steeve.xbox_save.clone();
         let path = steeve.steam_save.save_dir();
         steeve
             .hotwatch
             .watch(path, move |event| {
-                Self::handle_steam_event(&Xbox_save, event, &rx);
+                Self::handle_steam_event(&xbox_save, event, &rx);
             })
             .map_err(|err| Error::from_hotwatch(err, format!("Steam path: {path:?}")))?;
 
         let steam_save = steeve.steam_save.clone();
-        let path = steeve.Xbox_save.save_dir();
+        let path = steeve.xbox_save.save_dir();
         steeve
             .hotwatch
             .watch(path, move |event| {
-                Self::handle_Xbox_event(&steam_save, event, &tx);
+                Self::handle_xbox_event(&steam_save, event, &tx);
             })
             .map_err(|err| Error::from_hotwatch(err, format!("Xbox path: {path:?}")))?;
 
@@ -125,7 +125,7 @@ impl Steeve {
             .unwatch(self.steam_save.save_dir())
             .map_err(|err| Error::from_hotwatch(err, "Stopping Steam save path watcher"))?;
         self.hotwatch
-            .unwatch(self.Xbox_save.save_dir())
+            .unwatch(self.xbox_save.save_dir())
             .map_err(|err| Error::from_hotwatch(err, "Stopping Xbox save path watcher"))?;
 
         Ok(())
@@ -133,7 +133,7 @@ impl Steeve {
 
     /// Event handler for Steam save directory.
     fn handle_steam_event(
-        Xbox_save: &XboxSave,
+        xbox_save: &XboxSave,
         event: hotwatch::Event,
         rx: &Receiver<HandlerMessage>,
     ) {
@@ -151,7 +151,7 @@ impl Steeve {
         // XXX: We don't need to avoid self-updates on the Xbox event handler because we won't be
         // creating files. That's the only event the Xbox handler watches for.
 
-        match Xbox_save.copy_save(&path) {
+        match xbox_save.copy_save(&path) {
             Err(SaveError::NoSave | SaveError::ModifyTime) => (),
             Err(err) => warn!("Xbox save error: {:?}", err),
             _ => (),
@@ -159,7 +159,7 @@ impl Steeve {
     }
 
     /// Event handler for Xbox save directory.
-    fn handle_Xbox_event(
+    fn handle_xbox_event(
         steam_save: &SteamSave,
         event: hotwatch::Event,
         tx: &SyncSender<HandlerMessage>,

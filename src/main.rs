@@ -20,9 +20,6 @@ use time::error::IndeterminateOffset;
 #[cfg(target_os = "windows")]
 use tao::platform::windows::IconExtWindows;
 
-const WHITE_ICON_RES: u16 = 2;
-const BLACK_ICON_RES: u16 = 3;
-
 /// All the ways in which Steeve-Sync can fail.
 #[derive(Debug, Error)]
 enum AppError {
@@ -49,8 +46,8 @@ enum AppError {
 struct App {
     options: MenuId,
     quit: MenuId,
-    black_icon: TrayIcon,
-    white_icon: TrayIcon,
+    black_icon: Vec<u8>,
+    white_icon: Vec<u8>,
     window: Window,
     menu: Option<SystemTray>,
 }
@@ -101,11 +98,12 @@ fn create_app(event_loop: &EventLoop<()>) -> Result<App, AppError> {
         .with_visible(false)
         .build(event_loop)?;
 
-    let (icon_res, icon) = if window.theme() == Theme::Dark {
-        (WHITE_ICON_RES, white_icon.clone())
+    let icon = if window.theme() == Theme::Dark {
+        white_icon.clone()
     } else {
-        (BLACK_ICON_RES, black_icon.clone())
+        black_icon.clone()
     };
+    let icon = TrayIcon::from_rgba(icon, 256, 256)?;
     let menu = Some(SystemTrayBuilder::new(icon, Some(menu)).build(event_loop)?);
 
     #[cfg(target_os = "windows")]
@@ -130,9 +128,6 @@ fn run() -> Result<(), AppError> {
     // TODO: Use the loggers to show logs in the GUI
     let (_debug_logger, _info_logger) = init_logger()?;
 
-    let event_loop = EventLoop::new();
-    let mut app = create_app(&event_loop)?;
-
     info!("Welcome, miners!");
 
     // TODO: Make this configurable
@@ -140,6 +135,12 @@ fn run() -> Result<(), AppError> {
     let mut steeve = Steeve::new(max_backups)?;
 
     info!("Steeve is waiting for bugs to kill...");
+
+    // XXX: This must be the last use of the question-mark operator in the function.
+    // Otherwise Obj-C panics on macOS from `msgbox` and then `tao` catches the panic and hides the
+    // reason for the failure.
+    let event_loop = EventLoop::new();
+    let mut app = create_app(&event_loop)?;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -169,14 +170,15 @@ fn run() -> Result<(), AppError> {
                 ..
             } => {
                 if let Some(menu) = app.menu.as_mut() {
-                    let (icon_res, icon) = if theme == Theme::Dark {
-                        (WHITE_ICON_RES, app.white_icon.clone())
+                    let icon = if theme == Theme::Dark {
+                        app.white_icon.clone()
                     } else {
-                        (BLACK_ICON_RES, app.black_icon.clone())
+                        app.black_icon.clone()
                     };
-                    app.window
-                        .set_window_icon(Icon::from_resource(icon_res, None).ok());
-                    menu.set_icon(icon);
+                    let window_icon = Icon::from_rgba(icon.clone(), 256, 256).ok();
+                    app.window.set_window_icon(window_icon);
+                    let tray_icon = TrayIcon::from_rgba(icon, 256, 256).expect("TrayIcon");
+                    menu.set_icon(tray_icon);
                 }
             }
 
@@ -198,16 +200,15 @@ fn run() -> Result<(), AppError> {
     });
 }
 
-fn read_icon(bytes: &[u8]) -> Result<TrayIcon, AppError> {
+fn read_icon(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
     use image::{codecs::ico::IcoDecoder, ImageDecoder};
     use std::io::Cursor;
 
     let decoder = IcoDecoder::new(Cursor::new(bytes))?;
     let mut buf = vec![0; decoder.total_bytes().try_into().unwrap()];
     decoder.read_image(&mut buf)?;
-    let icon = TrayIcon::from_rgba(buf.to_vec(), 256, 256)?;
 
-    Ok(icon)
+    Ok(buf)
 }
 
 fn main() {
