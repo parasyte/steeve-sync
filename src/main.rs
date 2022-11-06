@@ -103,11 +103,11 @@ fn create_app(event_loop: &EventLoop<()>) -> Result<App, AppError> {
     } else {
         black_icon.clone()
     };
-    let icon = TrayIcon::from_rgba(icon, 256, 256)?;
-    let menu = Some(SystemTrayBuilder::new(icon, Some(menu)).build(event_loop)?);
+    let tray_icon = TrayIcon::from_rgba(icon.clone(), 256, 256)?;
+    let menu = Some(SystemTrayBuilder::new(tray_icon, Some(menu)).build(event_loop)?);
 
     #[cfg(target_os = "windows")]
-    window.set_window_icon(Icon::from_resource(icon_res, None).ok());
+    window.set_window_icon(Icon::from_rgba(icon, 256, 256).ok());
 
     Ok(App {
         options,
