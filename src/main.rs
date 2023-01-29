@@ -131,7 +131,7 @@ fn run() -> Result<(), AppError> {
     info!("Welcome, miners!");
 
     // TODO: Make this configurable
-    let max_backups = 10;
+    let max_backups = 25;
     let mut steeve = Steeve::new(max_backups)?;
 
     info!("Steeve is waiting for bugs to kill...");
