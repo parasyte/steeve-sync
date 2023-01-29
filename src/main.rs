@@ -17,9 +17,6 @@ use tao::{
 use thiserror::Error;
 use time::error::IndeterminateOffset;
 
-#[cfg(target_os = "windows")]
-use tao::platform::windows::IconExtWindows;
-
 /// All the ways in which Steeve-Sync can fail.
 #[derive(Debug, Error)]
 enum AppError {
@@ -127,6 +124,8 @@ fn run() -> Result<(), AppError> {
 
     // TODO: Use the loggers to show logs in the GUI
     let (_debug_logger, _info_logger) = init_logger()?;
+    let event_loop = EventLoop::new();
+    let mut app = create_app(&event_loop)?;
 
     info!("Welcome, miners!");
 
@@ -135,12 +134,6 @@ fn run() -> Result<(), AppError> {
     let mut steeve = Steeve::new(max_backups)?;
 
     info!("Steeve is waiting for bugs to kill...");
-
-    // XXX: This must be the last use of the question-mark operator in the function.
-    // Otherwise Obj-C panics on macOS from `msgbox` and then `tao` catches the panic and hides the
-    // reason for the failure.
-    let event_loop = EventLoop::new();
-    let mut app = create_app(&event_loop)?;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -212,14 +205,17 @@ fn read_icon(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
 }
 
 fn main() {
-    use msgbox::IconType;
+    use rfd::{MessageButtons, MessageDialog, MessageLevel};
 
     if let Err(err) = run() {
         error!("Error: {err}");
 
         // Show error in message box.
-        if let Err(err) = msgbox::create("Error", &err.to_string(), IconType::Error) {
-            error!("Could not create message box: `{err}`")
-        }
+        MessageDialog::new()
+            .set_level(MessageLevel::Error)
+            .set_title("Error")
+            .set_description(&err.to_string())
+            .set_buttons(MessageButtons::Ok)
+            .show();
     }
 }

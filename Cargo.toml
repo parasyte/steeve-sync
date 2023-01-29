@@ -15,11 +15,11 @@ directories = "4.0"
 hotwatch = "0.4"
 image = { version = "0.24", default-features = false, features = ["ico"] }
 log = "0.4"
-msgbox = "0.7"
 parking_lot = "0.12"
+rfd = "0.10"
 simplelog = "0.12"
 steamlocate = "1"
-tao = { version = "0.14", features = ["tray"] }
+tao = { version = "0.15", features = ["tray"] }
 thiserror = "1.0"
 time = "0.3"
 walkdir = "2.3"
