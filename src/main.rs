@@ -124,8 +124,6 @@ fn run() -> Result<(), AppError> {
 
     // TODO: Use the loggers to show logs in the GUI
     let (_debug_logger, _info_logger) = init_logger()?;
-    let event_loop = EventLoop::new();
-    let mut app = create_app(&event_loop)?;
 
     info!("Welcome, miners!");
 
@@ -134,6 +132,12 @@ fn run() -> Result<(), AppError> {
     let mut steeve = Steeve::new(max_backups)?;
 
     info!("Steeve is waiting for bugs to kill...");
+
+    // XXX: This must be the last use of the question-mark operator in the function.
+    // Otherwise Obj-C panics on macOS from `rfd` and then `tao` catches the panic and hides the
+    // reason for the failure.
+    let event_loop = EventLoop::new();
+    let mut app = create_app(&event_loop)?;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
