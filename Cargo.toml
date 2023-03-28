@@ -11,24 +11,29 @@ categories = ["command-line-utilities"]
 edition = "2021"
 
 [dependencies]
-directories = "4.0"
+directories = "5"
 hotwatch = "0.4"
 image = { version = "0.24", default-features = false, features = ["ico"] }
 log = "0.4"
 parking_lot = "0.12"
-rfd = "0.10"
+rfd = "0.11"
 simplelog = "0.12"
-steamlocate = "1"
-tao = { version = "0.15", features = ["tray"] }
-thiserror = "1.0"
+steamlocate = "2"
+tao = { version = "0.18", features = ["tray"] }
+thiserror = "1"
 time = "0.3"
-walkdir = "2.3"
+walkdir = "2"
 winapi = { version = "0.3", features = ["uxtheme"] }
 
 [target.'cfg(windows)'.build-dependencies]
-embed-resource = "1.7"
+embed-resource = "2"
 
 [profile.release]
 codegen-units = 1
 lto = true
 panic = "abort"
+
+[patch.crates-io.steamlocate]
+version = "2"
+git = "https://github.com/parasyte/steamlocate-rs.git"
+rev = "b9c6ef4bcf65007f44fbc61a669332ab4409e295"
