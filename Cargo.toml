@@ -23,7 +23,6 @@ tao = { version = "0.18", features = ["tray"] }
 thiserror = "1"
 time = "0.3"
 walkdir = "2"
-winapi = { version = "0.3", features = ["uxtheme"] }
 
 [target.'cfg(windows)'.build-dependencies]
 embed-resource = "2"
