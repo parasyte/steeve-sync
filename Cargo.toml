@@ -12,9 +12,9 @@ edition = "2021"
 
 [dependencies]
 directories = "5"
-hotwatch = "0.4"
 image = { version = "0.24", default-features = false, features = ["ico"] }
 log = "0.4"
+notify-debouncer-mini = "0.2"
 parking_lot = "0.12"
 rfd = "0.11"
 simplelog = "0.12"
