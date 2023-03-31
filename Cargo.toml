@@ -18,7 +18,7 @@ notify-debouncer-mini = "0.2"
 parking_lot = "0.12"
 rfd = "0.11"
 simplelog = "0.12"
-steamlocate = "2"
+steamlocate = "2.0.0-alpha.0"
 tao = { version = "0.18", features = ["tray"] }
 thiserror = "1"
 time = "0.3"
@@ -31,8 +31,3 @@ embed-resource = "2"
 codegen-units = 1
 lto = true
 panic = "abort"
-
-[patch.crates-io.steamlocate]
-version = "2"
-git = "https://github.com/parasyte/steamlocate-rs.git"
-rev = "b9c6ef4bcf65007f44fbc61a669332ab4409e295"

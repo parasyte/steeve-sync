@@ -142,9 +142,6 @@ impl Steeve {
 
         debug!("Got event for Steam path: {:?}", event.path);
 
-        // XXX: We don't need to avoid self-updates on the Xbox event handler because we won't be
-        // creating files. That's the only event the Xbox handler watches for.
-
         match xbox_save.copy_save(&event.path) {
             Err(SaveError::NoSave | SaveError::ModifyTime) => (),
             Err(err) => warn!("Xbox save error: {:?}", err),
